@@ -3,71 +3,71 @@ import numpy as np
 import pandas as pd
 import io
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-st.set_page_config(page_title="analyze your data",page_icon="",layout="wide")
+
+st.set_page_config(page_title="Analyze Your Data", page_icon="📊", layout="wide")
 
 st.title("📊 ANALYZE YOUR DATA")
-st.write("🔍 Upload A **CSV** or an Excel file to explore your data interactively")
+st.write("🔍 Upload a **CSV** or an Excel file to explore your data interactively")
 
-uploaded_file = st.file_uploader("upload a CSV or an Excel file",type=["csv", "xlsx", "xls"])
+uploaded_file = st.file_uploader("Upload a CSV or an Excel file", type=["csv", "xlsx", "xls"])
 
 if uploaded_file is not None:
-    
+    # Read file
     if uploaded_file.name.endswith('.csv'):
         df = pd.read_csv(uploaded_file)
-        st.success("file upload succesfully!")
-    elif uploaded_file.name.endswith('.xlsx'):
+        st.success("File uploaded successfully!")
+    elif uploaded_file.name.endswith(('.xlsx', '.xls')):
         df = pd.read_excel(uploaded_file)
-        st.success("file upload succesfully!")
+        st.success("File uploaded successfully!")
     else:
-        st.error("could not read excel/ csv file. please check the file format.")
+        st.error("Could not read Excel/CSV file. Please check the file format.")
 
     # Data Overview
     st.write("### Preview of Data")
     st.dataframe(df)
-        
-    st.write("### 📚 Data Overview")
-    st.write(f"Numbers of Rows:{df.shape[0]}")
-    st.write(f"Numbers of Columns:{df.shape[1]}")
-    st.write("Numbers of Missing Values:",df.isnull().sum().sum())
-    st.write("Numbers of Duplicate Records:",df.duplicated().sum())
 
-    st.write("### 📋 Complete Summary Of Dataset")
+    st.write("### 📚 Data Overview")
+    st.write(f"Number of Rows: {df.shape[0]}")
+    st.write(f"Number of Columns: {df.shape[1]}")
+    st.write(f"Number of Missing Values: {df.isnull().sum().sum()}")
+    st.write(f"Number of Duplicate Records: {df.duplicated().sum()}")
+
+    st.write("### 📋 Complete Summary of Dataset")
     buffer = io.StringIO()
     df.info(buf=buffer)
-    i = buffer.getvalue()
-    st.text(i)
+    info_str = buffer.getvalue()
+    st.text(info_str)
 
-    #describe()
+    # describe()
     st.write("### 📊 Numerical Features Summary")
-    st.dataframe(df.describe(include=[float, int]))
+    st.dataframe(df.describe(include=['float64', 'int64']))
 
-    st.write("### 📈 Statistical Summary For Non-Numerical Features Of Dataset")
-    st.dataframe(df.describe(include=['bool','object']))
+    st.write("### 📈 Statistical Summary for Non-Numerical Features")
+    st.dataframe(df.describe(include=['bool', 'object']))
 
-    st.write("### 📑 Select The Desired Columns For Analysis")
-    selected_columns = st.multiselect("Choose Columns",df.columns.tolist())
+    # Column selection
+    st.write("### 📑 Select Desired Columns for Analysis")
+    selected_columns = st.multiselect("Choose Columns", df.columns.tolist())
 
     if selected_columns:
-            st.dataframe(df[selected_columns].head())
+        st.dataframe(df[selected_columns].head())
     else:
-            st.info("No Columns Selected. Showing Full Dataset")
-            st.dataframe(df.head())
+        st.info("No columns selected. Showing full dataset")
+        st.dataframe(df.head())
 
-    st.write("### 📎Data Visualization")
-    st.write("Select **Columns** For Data Visualization")
-    columns = df.columns.tolist()
-    
-    num_cols = df.select_dtypes(include=['float','int']).columns
-    cat_cols = df.select_dtypes(include=['object','bool']).columns
+    # Visualization
+    st.write("### 📎 Data Visualization")
+    st.write("Select **Columns** for Data Visualization")
+
+    num_cols = df.select_dtypes(include=['float64', 'int64']).columns
+    cat_cols = df.select_dtypes(include=['object', 'bool']).columns
 
     if len(num_cols) > 0:
         x_axis = st.selectbox("Choose X-axis column", num_cols, key="x")
         y_axis = st.selectbox("Choose Y-axis column", num_cols, key="y")
-    
 
-        # Buat grid butang
+        # Grid buttons
         col1, col2 = st.columns(2)
         col3, col4 = st.columns(2)
 
@@ -83,7 +83,7 @@ if uploaded_file is not None:
         # Line Graph
         if line_btn:
             st.write("### Line Graph")
-            fig, ax = plt.subplots(figsize=(8,6))            
+            fig, ax = plt.subplots(figsize=(6,4))
             ax.plot(df[x_axis], df[y_axis])
             ax.set_xlabel(x_axis)
             ax.set_ylabel(y_axis)
@@ -93,7 +93,7 @@ if uploaded_file is not None:
         # Scatter Graph
         if scatter_btn:
             st.write("### Scatter Graph")
-            fig, ax = plt.subplots(figsize=(8,6))
+            fig, ax = plt.subplots(figsize=(6,4))
             ax.scatter(df[x_axis], df[y_axis])
             ax.set_xlabel(x_axis)
             ax.set_ylabel(y_axis)
@@ -103,20 +103,21 @@ if uploaded_file is not None:
         # Histogram
         if hist_btn:
             st.write("### Histogram")
-            fig, ax = plt.subplots(figsize=(8,6))
-            ax.hist(df[x_axis], bins=20, color="skyblue", edgecolor="black")
+            fig, ax = plt.subplots(figsize=(6,4))
+            ax.hist(df[x_axis].dropna(), bins=20, color="skyblue", edgecolor="black")
             ax.set_title(f"Histogram of {x_axis}")
             st.pyplot(fig)
 
+        # Boxplot
         if box_btn:
             st.write("### Boxplot")
-            fig, ax = plt.subplots(figsize=(8,6))
-            ax.boxplot(df[x_axis])
+            fig, ax = plt.subplots(figsize=(6,4))
+            ax.boxplot(df[x_axis].dropna())
             ax.set_title(f"Boxplot of {x_axis}")
             st.pyplot(fig)
-    
-    if len(num_cols) == 0:
+
+    else:
         st.warning("No numerical columns available.")
 
 else:
-        st.info("Please Upload A CSV File or Excel File To Get Started")
+    st.info("Please upload a CSV or Excel file to get started")
